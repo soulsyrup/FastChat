@@ -31,10 +31,6 @@ from fastchat import conversation as conversation_lib
 # TODO: import and use code from ../data/dataset.py
 
 IGNORE_INDEX = -100
-DEFAULT_PAD_TOKEN = "[PAD]"
-DEFAULT_EOS_TOKEN = "</s>"
-DEFAULT_BOS_TOKEN = "</s>"
-DEFAULT_UNK_TOKEN = "</s>"
 
 
 @dataclass
@@ -307,18 +303,11 @@ def train():
         padding_side="right",
         use_fast=False,
     )
-    if tokenizer.pad_token is None:
-        smart_tokenizer_and_embedding_resize(
-            special_tokens_dict=dict(pad_token=DEFAULT_PAD_TOKEN),
-            tokenizer=tokenizer,
-            model=model,
-        )
-    if "llama" in model_args.model_name_or_path:
-        tokenizer.add_special_tokens({
-            "eos_token": DEFAULT_EOS_TOKEN,
-            "bos_token": DEFAULT_BOS_TOKEN,
-            "unk_token": DEFAULT_UNK_TOKEN,
-        })
+    smart_tokenizer_and_embedding_resize(
+        special_tokens_dict=dict(conv_token='###'),
+        tokenizer=tokenizer,
+        model=model,
+    )
 
     data_module = make_supervised_data_module(tokenizer=tokenizer,
                                               data_args=data_args)
