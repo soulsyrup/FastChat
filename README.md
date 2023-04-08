@@ -41,6 +41,11 @@ git clone https://github.com/lm-sys/FastChat.git
 cd FastChat
 ```
 
+If you are running on Mac:
+```bash
+brew install rust
+```
+
 2. Install Package
 ```bash
 pip3 install --upgrade pip  # enable PEP 660 support
@@ -52,7 +57,7 @@ We release [Vicuna](https://vicuna.lmsys.org/) weights as delta weights to compl
 You can add our delta to the original LLaMA weights to obtain the Vicuna weights. Instructions:
 
 1. Get the original LLaMA weights in the huggingface format by following the instructions [here](https://huggingface.co/docs/transformers/main/model_doc/llama).
-2. Use the following scripts to get Vicuna weights by applying our delta. They will automatically download delta weights from our Hugging Face account.
+2. Use the following scripts to get Vicuna weights by applying our delta. They will automatically download delta weights from our Hugging Face [account](https://huggingface.co/lmsys).
 
 **NOTE**:
 Our released weights are only compatible with the latest main branch of huggingface/transformers.
@@ -116,28 +121,35 @@ Contributions and pull requests are welcome.
 
 ## Serving with Web GUI
 
-### Launch a controller
+To serve using the web UI, you need three main components: web servers that interface with users, model workers that host one or more models, and a controller to coordinate the webserver and model workers. Here are the commands to follow in your terminal:
+
+**Launch the controller**
 ```bash
 python3 -m fastchat.serve.controller
 ```
 
-### Launch a model worker
+This controller manages the distributed workers.
+
+**Launch the model worker**
 ```bash
 python3 -m fastchat.serve.model_worker --model-path /path/to/vicuna/weights
 ```
-Wait until the process finishes loading the model and you see "Uvicorn running on ...".
+Wait until the process finishes loading the model and you see "Uvicorn running on ...". You can launch multiple model workers to serve multiple models concurrently. The model worker will connect to the controller automatically.
 
-### Send a test message
+To ensure that your model worker is connected to your controller properly, send a test message using the following command:
 ```bash
 python3 -m fastchat.serve.test_message --model-name vicuna-13b
 ```
 
-### Launch a gradio web server.
+**Launch the Gradio web server**
 ```bash
 python3 -m fastchat.serve.gradio_web_server
 ```
 
-### You can open your browser and chat with a model now.
+This is the user interface that users will interact with.
+
+By following these steps, you will be able to serve your models using the web UI. You can open your browser and chat with a model now.
+
 
 ## Evaluation
 

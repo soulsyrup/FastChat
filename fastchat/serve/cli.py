@@ -1,4 +1,6 @@
 """
+Chat with a model with command line interface.
+
 Usage:
 python3 -m fastchat.serve.cli --model ~/model_weights/llama-7b
 """
@@ -6,11 +8,12 @@ import argparse
 import time
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, AutoModel
 
 from fastchat.conversation import conv_templates, SeparatorStyle
 from fastchat.serve.compression import compress_module
 from fastchat.serve.monkey_patch_non_inplace import replace_llama_attn_with_non_inplace_operations
+from fastchat.serve.serve_chatglm import chatglm_generate_stream
 
 
 def load_model(model_name, device, num_gpus, load_8bit=False, debug=False):
@@ -39,9 +42,13 @@ def load_model(model_name, device, num_gpus, load_8bit=False, debug=False):
     else:
         raise ValueError(f"Invalid device: {device}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
-    model = AutoModelForCausalLM.from_pretrained(model_name,
-        low_cpu_mem_usage=True, **kwargs)
+    if "chatglm" in model_name:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_name, trust_remote_code=True).half().cuda()
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+        model = AutoModelForCausalLM.from_pretrained(model_name,
+            low_cpu_mem_usage=True, **kwargs)
 
     # calling model.cuda() mess up weights if loading 8-bit weights
     if device == "cuda" and num_gpus == 1 and not load_8bit:
@@ -59,10 +66,8 @@ def load_model(model_name, device, num_gpus, load_8bit=False, debug=False):
 
 
 @torch.inference_mode()
-def generate_stream(tokenizer, model, params, device,
+def generate_stream(model, tokenizer, params, device,
                     context_len=2048, stream_interval=2):
-    """Adapted from fastchat/serve/model_worker.py::generate_stream"""
-
     prompt = params["prompt"]
     l_prompt = len(prompt)
     temperature = float(params.get("temperature", 1.0))
@@ -130,6 +135,7 @@ def main(args):
     # Model
     model, tokenizer = load_model(args.model_name, args.device,
         args.num_gpus, args.load_8bit, args.debug)
+    is_chatglm = "chatglm" in str(type(model)).lower()
 
     # Chat
     conv = conv_templates[args.conv_template].copy()
@@ -144,7 +150,15 @@ def main(args):
 
         conv.append_message(conv.roles[0], inp)
         conv.append_message(conv.roles[1], None)
-        prompt = conv.get_prompt()
+
+        if is_chatglm:
+            prompt = conv.messages[conv.offset:]
+            generate_stream_func = chatglm_generate_stream
+            skip_echo_len = len(conv.messages[-2][1]) + 1
+        else:
+            generate_stream_func = generate_stream
+            prompt = conv.get_prompt()
+            skip_echo_len = len(prompt) + 1
 
         params = {
             "model": model_name,
@@ -156,8 +170,8 @@ def main(args):
 
         print(f"{conv.roles[1]}: ", end="", flush=True)
         pre = 0
-        for outputs in generate_stream(tokenizer, model, params, args.device):
-            outputs = outputs[len(prompt) + 1:].strip()
+        for outputs in generate_stream_func(model, tokenizer, params, args.device):
+            outputs = outputs[skip_echo_len:].strip()
             outputs = outputs.split(" ")
             now = len(outputs)
             if now - 1 > pre:
@@ -176,8 +190,10 @@ if __name__ == "__main__":
     parser.add_argument("--model-name", type=str, default="facebook/opt-350m")
     parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps"], default="cuda")
     parser.add_argument("--num-gpus", type=str, default="1")
-    parser.add_argument("--load-8bit", action="store_true")
-    parser.add_argument("--conv-template", type=str, default="v1")
+    parser.add_argument("--load-8bit", action="store_true",
+        help="Use 8-bit quantization.")
+    parser.add_argument("--conv-template", type=str, default="v1",
+        help="Conversation prompt template.")
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument("--max-new-tokens", type=int, default=512)
     parser.add_argument("--debug", action="store_true")
