@@ -142,7 +142,7 @@ def _mask_targets(target, tokenized_lens, speakers, header_len, s_ids):
 
 def _add_speaker_and_signal(header, source, get_conversation=True):
     """Add speaker and start/end signal on each round."""
-    BEGIN_SIGNAL = "### "
+    BEGIN_SIGNAL = f"{conversation_lib.default_conversation.sep} "
     END_SIGNAL = "\n"
     conversation = header
     unknown_role = "unknown"  # use default unknown role
@@ -304,7 +304,7 @@ def train():
         use_fast=False,
     )
     smart_tokenizer_and_embedding_resize(
-        special_tokens_dict=dict(conv_token='###'),
+        special_tokens_dict=dict(conv_token=conversation_lib.default_conversation.sep),
         tokenizer=tokenizer,
         model=model,
     )
