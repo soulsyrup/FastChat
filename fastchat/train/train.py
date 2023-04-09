@@ -304,7 +304,7 @@ def train():
         use_fast=False,
     )
     smart_tokenizer_and_embedding_resize(
-        special_tokens_dict=dict(conv_token=conversation_lib.default_conversation.sep),
+        special_tokens_dict={'additional_special_tokens':[conversation_lib.default_conversation.sep]},
         tokenizer=tokenizer,
         model=model,
     )
