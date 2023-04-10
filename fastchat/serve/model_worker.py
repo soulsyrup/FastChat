@@ -19,7 +19,7 @@ import torch
 import uvicorn
 
 from fastchat.constants import WORKER_HEART_BEAT_INTERVAL
-from fastchat.serve.cli import load_model, generate_stream
+from fastchat.serve.inference import load_model, generate_stream
 from fastchat.serve.serve_chatglm import chatglm_generate_stream
 from fastchat.utils import (build_logger, server_error_msg,
     pretty_print_semaphore)
@@ -109,7 +109,7 @@ class ModelWorker:
             self.register_to_controller()
 
     def get_queue_length(self):
-        if model_semaphore is None:
+        if model_semaphore is None or model_semaphore._value is None or model_semaphore._waiters is None:
             return 0
         else:
             return args.limit_model_concurrency - model_semaphore._value + len(
