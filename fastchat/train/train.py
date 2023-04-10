@@ -132,7 +132,7 @@ def preprocess(
             #rank0_print(tokenizer.decode(target[cur_len+instruction_len:cur_len+round_len]))
 
             cur_len += round_len
-        target[total_len:] = IGNORE_TOKEN_ID
+        target[cur_len:] = IGNORE_TOKEN_ID
 
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
@@ -218,11 +218,10 @@ def train():
         (ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     local_rank = training_args.local_rank
-    #model = transformers.AutoModelForCausalLM.from_pretrained(
-    #    model_args.model_name_or_path,
-    #    cache_dir=training_args.cache_dir,
-    #)
-    model = None
+    model = transformers.AutoModelForCausalLM.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+    )
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,

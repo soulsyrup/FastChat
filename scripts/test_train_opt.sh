@@ -1,5 +1,5 @@
 torchrun --nproc_per_node=4 --master_port=20001 fastchat/train/train.py \
-    --model_name_or_path ~/model_weights/llama-7b  \
+    --model_name_or_path facebook/opt-350m \
     --data_path ~/datasets/hardcoded.json \
     --bf16 False \
     --fp16 True \
@@ -18,7 +18,5 @@ torchrun --nproc_per_node=4 --master_port=20001 fastchat/train/train.py \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --tf32 False \
-    --fsdp "full_shard auto_wrap" \
-    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
     --gradient_checkpointing True \
     --lazy_preprocess False
