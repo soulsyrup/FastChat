@@ -67,12 +67,11 @@ def filter_invalid_roles(content):
         valid = True
         for j, s in enumerate(c["conversations"]):
             if s["from"] != roles[j % 2]:
-                print(s["from"])
                 valid = False
                 break
 
         if valid:
-            new_content.append(content)
+            new_content.append(c)
 
     return new_content
 
@@ -90,7 +89,7 @@ def main(args):
     new_content = filter_invalid_roles(new_content)
 
     print(f"total: {len(content)}, new: {len(new_content)}")
-    json.dump(content, open(args.out_file, "w"), indent=2)
+    json.dump(new_content, open(args.out_file, "w"), indent=2)
 
 
 if __name__ == "__main__":
