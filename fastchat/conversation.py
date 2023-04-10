@@ -104,7 +104,7 @@ conv_v0 = Conversation(
             "5. Flexibility: Renewable energy sources are often more flexible and can be adapted to different "
             "situations and needs, while non-renewable sources are more rigid and inflexible.\n"
             "6. Sustainability: Renewable energy sources are more sustainable over the long term, while "
-            "non-renewable sources are not, and their depletion can lead to economic and social instability.\n")
+            "non-renewable sources are not, and their depletion can lead to economic and social instability.")
     ),
     offset=2,
     sep_style=SeparatorStyle.SINGLE,
@@ -118,6 +118,39 @@ conv_v1_1 = Conversation(
     roles=("USER", "ASSISTANT"),
     messages=(),
     offset=0,
+    sep_style=SeparatorStyle.TWO,
+    sep=" ",
+    sep2="</s>",
+)
+
+
+conv_v1_1_one_shot = Conversation(
+    system="A chat between a curious user and an artificial intelligence assistant. "
+           "The assistant gives helpful, detailed, and polite answers to the user's questions.",
+    roles=("USER", "ASSISTANT"),
+    messages=(
+        ("USER", "What are the key differences between renewable and non-renewable energy sources?"),
+        ("ASSISTANT",
+            "Renewable energy sources are those that can be replenished naturally in a relatively "
+            "short amount of time, such as solar, wind, hydro, geothermal, and biomass. "
+            "Non-renewable energy sources, on the other hand, are finite and will eventually be "
+            "depleted, such as coal, oil, and natural gas. Here are some key differences between "
+            "renewable and non-renewable energy sources:\n"
+            "1. Availability: Renewable energy sources are virtually inexhaustible, while non-renewable "
+            "energy sources are finite and will eventually run out.\n"
+            "2. Environmental impact: Renewable energy sources have a much lower environmental impact "
+            "than non-renewable sources, which can lead to air and water pollution, greenhouse gas emissions, "
+            "and other negative effects.\n"
+            "3. Cost: Renewable energy sources can be more expensive to initially set up, but they typically "
+            "have lower operational costs than non-renewable sources.\n"
+            "4. Reliability: Renewable energy sources are often more reliable and can be used in more remote "
+            "locations than non-renewable sources.\n"
+            "5. Flexibility: Renewable energy sources are often more flexible and can be adapted to different "
+            "situations and needs, while non-renewable sources are more rigid and inflexible.\n"
+            "6. Sustainability: Renewable energy sources are more sustainable over the long term, while "
+            "non-renewable sources are not, and their depletion can lead to economic and social instability.")
+    ),
+    offset=2,
     sep_style=SeparatorStyle.TWO,
     sep=" ",
     sep2="</s>",
@@ -140,6 +173,14 @@ conv_templates = {
     "v1.1": conv_v1_1,
     "koala_v1": conv_koala_v1,
 }
+
+
+def get_default_conv_template(model_name):
+    if "vicuna" or "output" in model_name:
+        return conv_v1_1
+    elif "koala" in model_name:
+        return conv_koala_v1
+    return conv_v1_1_one_shot
 
 
 if __name__ == "__main__":

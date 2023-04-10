@@ -1,9 +1,11 @@
 """Inference for FastChat models."""
 import abc
+from typing import Optional
+
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, AutoModel
 
-from fastchat.conversation import conv_templates, SeparatorStyle
+from fastchat.conversation import conv_templates, get_default_conv_template, SeparatorStyle
 from fastchat.serve.compression import compress_module
 from fastchat.serve.monkey_patch_non_inplace import replace_llama_attn_with_non_inplace_operations
 from fastchat.serve.serve_chatglm import chatglm_generate_stream
@@ -58,6 +60,8 @@ def generate_stream(model, tokenizer, params, device,
     temperature = float(params.get("temperature", 1.0))
     max_new_tokens = int(params.get("max_new_tokens", 256))
     stop_str = params.get("stop", None)
+    if stop_str == tokenizer.eos_token:
+        stop_str = None
 
     input_ids = tokenizer(prompt).input_ids
     output_ids = list(input_ids)
@@ -102,10 +106,11 @@ def generate_stream(model, tokenizer, params, device,
 
         if i % stream_interval == 0 or i == max_new_tokens - 1 or stopped:
             output = tokenizer.decode(output_ids, skip_special_tokens=True)
-            pos = output.rfind(stop_str, l_prompt)
-            if pos != -1:
-                output = output[:pos]
-                stopped = True
+            if stop_str:
+                pos = output.rfind(stop_str, l_prompt)
+                if pos != -1:
+                    output = output[:pos]
+                    stopped = True
             yield output
 
         if stopped:
@@ -129,15 +134,20 @@ class ChatIO(abc.ABC):
 
 
 def chat_loop(model_name: str, device: str, num_gpus: str, load_8bit: bool,
-              conv_template: str, temperature: float, max_new_tokens: int,
-              chatio: ChatIO, debug: bool):
+              conv_template: Optional[str], temperature: float,
+              max_new_tokens: int, chatio: ChatIO,
+              debug: bool):
     # Model
     model, tokenizer = load_model(model_name, device,
         num_gpus, load_8bit, debug)
     is_chatglm = "chatglm" in str(type(model)).lower()
 
     # Chat
-    conv = conv_templates[conv_template].copy()
+    if conv_template:
+        conv = conv_templates[conv_template].copy()
+    else:
+        conv = get_default_conv_template(model_name).copy()
+
     while True:
         try:
             inp = chatio.prompt_for_input(conv.roles[0])
