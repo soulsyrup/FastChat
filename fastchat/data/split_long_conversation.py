@@ -54,7 +54,26 @@ def split_contents(content, begin, end, tokenizer, max_length):
 
             cur_len += tmp_len
 
-    print(f"total: {len(content)}, new: {len(new_content)}")
+    return new_content
+
+
+def filter_invalid_roles(content):
+    new_content = []
+    for i, c in enumerate(content):
+        roles = ["human", "gpt"]
+        if len(c["conversations"]) <= 0:
+            continue
+
+        valid = True
+        for j, s in enumerate(c["conversations"]):
+            if s["from"] != roles[j % 2]:
+                print(s["from"])
+                valid = False
+                break
+
+        if valid:
+            new_content.append(content)
+
     return new_content
 
 
@@ -66,8 +85,11 @@ def main(args):
         padding_side="right",
         use_fast=False,
     )
-    content = split_contents(content, args.begin, args.end,
+    new_content = split_contents(content, args.begin, args.end,
         tokenizer, args.max_length)
+    new_content = filter_invalid_roles(new_content)
+
+    print(f"total: {len(content)}, new: {len(new_content)}")
     json.dump(content, open(args.out_file, "w"), indent=2)
 
 
