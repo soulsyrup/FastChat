@@ -178,9 +178,9 @@ def http_bot(state, model_selector, temperature, max_new_tokens, request: gr.Req
     if len(state.messages) == state.offset + 2:
         # First round of conversation
         if "koala" in model_name: # Hardcode the condition
-            template_name = "bair_v1"
+            template_name = "koala_v1"
         else:
-            template_name = "v1"
+            template_name = "v1.1"
         new_state = conv_templates[template_name].copy()
         new_state.conv_id = uuid.uuid4().hex
         new_state.append_message(new_state.roles[0], state.messages[-2][1])

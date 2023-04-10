@@ -1,7 +1,8 @@
-torchrun --nproc_per_node=4 --master_port=20001 fastchat/train/alpaca_train.py \
-    --model_name_or_path /home/haozhang/model_weights/hf-llama-7b \
-    --data_path /home/haozhang/datasets/alpaca_data.json \
-    --bf16 True \
+torchrun --nproc_per_node=4 --master_port=20001 fastchat/train/train.py \
+    --model_name_or_path ~/model_weights/llama-7b  \
+    --data_path ~/datasets/test.json \
+    --bf16 False \
+    --fp16 True \
     --output_dir output \
     --num_train_epochs 3 \
     --per_device_train_batch_size 4 \
@@ -18,5 +19,9 @@ torchrun --nproc_per_node=4 --master_port=20001 fastchat/train/alpaca_train.py \
     --logging_steps 1 \
     --fsdp "full_shard auto_wrap" \
     --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
-    --tf32 True \
+    --tf32 False \
     --gradient_checkpointing True
+
+    #--model_name_or_path facebook/opt-350m \
+    #--data_path ~/datasets/sharegpt_backup/sharegpt_20230322_clean_lang_split.json \
+    #--model_name_or_path ~/model_weights/llama-7b  \

@@ -20,6 +20,7 @@ class Conversation:
     sep: str = "###"
     sep2: str = None
 
+    # Used for gradio server
     skip_next: bool = False
     conv_id: Any = None
 
@@ -79,34 +80,7 @@ class Conversation:
         }
 
 
-conv_v1 = Conversation(
-    system="A chat between a curious human and an artificial intelligence assistant. "
-           "The assistant gives helpful, detailed, and polite answers to the human's questions.",
-    roles=("Human", "Assistant"),
-    messages=(
-        ("Human", "Give three tips for staying healthy."),
-        ("Assistant",
-            "Sure, here are three tips for staying healthy:\n"
-            "1. Exercise regularly: Regular physical activity can help improve your overall health and wellbeing. "
-            "It can also help reduce your risk of chronic conditions such as obesity, diabetes, heart disease, "
-            "and certain cancers. Aim for at least 150 minutes of moderate-intensity aerobic exercise or "
-            "75 minutes of vigorous-intensity aerobic exercise per week, along with muscle-strengthening "
-            "activities at least two days per week.\n"
-            "2. Eat a balanced diet: Eating a balanced diet that is rich in fruits, "
-            "vegetables, whole grains, lean proteins, and healthy fats can help support "
-            "your overall health. Try to limit your intake of processed and high-sugar foods, "
-            "and aim to drink plenty of water throughout the day.\n"
-            "3. Get enough sleep: Getting enough quality sleep is essential for your physical "
-            "and mental health. Adults should aim for seven to nine hours of sleep per night. "
-            "Establish a regular sleep schedule and try to create a relaxing bedtime routine to "
-            "help improve the quality of your sleep.")
-    ),
-    offset=2,
-    sep_style=SeparatorStyle.SINGLE,
-    sep="###",
-)
-
-conv_v1_2 = Conversation(
+conv_v0 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
            "The assistant gives helpful, detailed, and polite answers to the human's questions.",
     roles=("Human", "Assistant"),
@@ -137,7 +111,20 @@ conv_v1_2 = Conversation(
     sep="###",
 )
 
-conv_bair_v1 = Conversation(
+
+conv_v1_1 = Conversation(
+    system="A chat between a curious user and an artificial intelligence assistant. "
+           "The assistant gives helpful, detailed, and polite answers to the user's questions.",
+    roles=("USER", "ASSISTANT"),
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.TWO,
+    sep=" ",
+    sep2="</s>",
+)
+
+
+conv_koala_v1 = Conversation(
     system="BEGINNING OF CONVERSATION:",
     roles=("USER", "GPT"),
     messages=(),
@@ -148,10 +135,10 @@ conv_bair_v1 = Conversation(
 )
 
 
-default_conversation = conv_v1_2
 conv_templates = {
-    "v1": conv_v1_2,
-    "bair_v1": conv_bair_v1,
+    "v0": conv_v0,
+    "v1.1": conv_v1_1,
+    "koala_v1": conv_koala_v1,
 }
 
 
