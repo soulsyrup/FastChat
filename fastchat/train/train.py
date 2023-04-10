@@ -118,10 +118,11 @@ def preprocess(
         cur_len = 1
         for i, rou in enumerate(rounds):
             if rou == "":
-                continue
+                break
 
             parts = rou.split(sep)
-            assert len(parts) == 2, f"{conversation}, {len(parts)}"
+            if len(parts) != 2:
+                break
             parts[0] += sep
             round_len = len(tokenizer(rou).input_ids)
             instruction_len = len(tokenizer(parts[0]).input_ids) - 2
