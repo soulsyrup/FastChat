@@ -23,8 +23,11 @@ workdir: .
 
 setup: |
   # Setup the environment
-  conda create -n chatbot python=3.10 -y
   conda activate chatbot
+  if [ $? -ne 0 ]; then
+    conda create -n chatbot python=3.10 -y
+    conda activate chatbot
+  fi
 
   # Install pytorch
   pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
@@ -51,11 +54,11 @@ setup: |
       --model_size ${MODEL_SIZE}B \
       --output_dir ~/hf-output || exit 1
     mv ~/hf-output/tokenizer/* ~/hf-output/llama-${MODEL_SIZE}b
-    gsutil -m rsync -r ~/hf-output/llama-${MODEL_SIZE}b/ /artifacts/llama-hf/llama-${MODEL_SIZE}B
+    gsutil -m rsync -r ~/hf-output/llama-${MODEL_SIZE}b/ /artifacts/llama-hf/llama-${MODEL_SIZE}B/
     touch /artifacts/llama-hf/llama-${MODEL_SIZE}B/complete
   else
     mkdir -p ~/hf-output/llama-${MODEL_SIZE}b
-    gsutil -m cp -r /artifacts/llama-hf/llama-${MODEL_SIZE}B/* ~/hf-output/llama-${MODEL_SIZE}b
+    gsutil -m  rsync -r /artifacts/llama-hf/llama-${MODEL_SIZE}B/ ~/hf-output/llama-${MODEL_SIZE}b/
   fi
 
 run: |
@@ -115,11 +118,14 @@ run: |
     --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
     --tf32 True \
     --model_max_length ${SEQ_LEN} \
+    --run_name $SKYPILOT_JOB_ID \
     --gradient_checkpointing True \
     --lazy_preprocess True
 
+  returncode=$?
   # Sync any files not in the checkpoint-* folders
   gsutil -m rsync -r -x 'checkpoint-*' $LOCAL_CKPT_PATH/ $CKPT_PATH/
+  exit $returncode
 
 
 envs:
