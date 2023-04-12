@@ -3,7 +3,10 @@ import abc
 from typing import Optional
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, AutoModel
+try:
+    from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, AutoModel
+except ImportError:
+    from transformers import AutoTokenizer, AutoModelForCausalLM, LLaMATokenizer, AutoModel
 
 from fastchat.conversation import conv_templates, get_default_conv_template, SeparatorStyle
 from fastchat.serve.compression import compress_module
@@ -133,12 +136,12 @@ class ChatIO(abc.ABC):
         """Stream output."""
 
 
-def chat_loop(model_name: str, device: str, num_gpus: str, load_8bit: bool,
+def chat_loop(model_path: str, device: str, num_gpus: str, load_8bit: bool,
               conv_template: Optional[str], temperature: float,
               max_new_tokens: int, chatio: ChatIO,
               debug: bool):
     # Model
-    model, tokenizer = load_model(model_name, device,
+    model, tokenizer = load_model(model_path, device,
         num_gpus, load_8bit, debug)
     is_chatglm = "chatglm" in str(type(model)).lower()
 
@@ -146,7 +149,7 @@ def chat_loop(model_name: str, device: str, num_gpus: str, load_8bit: bool,
     if conv_template:
         conv = conv_templates[conv_template].copy()
     else:
-        conv = get_default_conv_template(model_name).copy()
+        conv = get_default_conv_template(model_path).copy()
 
     while True:
         try:
@@ -170,7 +173,7 @@ def chat_loop(model_name: str, device: str, num_gpus: str, load_8bit: bool,
             skip_echo_len = len(prompt.replace("</s>", " ")) + 1
 
         params = {
-            "model": model_name,
+            "model": model_path,
             "prompt": prompt,
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,

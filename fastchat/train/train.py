@@ -25,7 +25,7 @@ import transformers
 from transformers import Trainer
 from transformers.trainer_pt_utils import LabelSmoother
 
-from fastchat.conversation import conv_templates, SeparatorStyle
+from fastchat.conversation import get_default_conv_template, SeparatorStyle
 
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 
@@ -80,7 +80,7 @@ def preprocess(
     sources,
     tokenizer: transformers.PreTrainedTokenizer,
 ) -> Dict:
-    conv = conv_templates["v1.1"].copy()
+    conv = get_default_conv_template("vicuna").copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
     # Apply prompt templates
