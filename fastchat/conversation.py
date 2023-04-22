@@ -165,6 +165,16 @@ conv_vicuna_v1_1 = Conversation(
     sep2="</s>",
 )
 
+conv_alpaca = Conversation(
+    system="Below is an instruction that describes a task, paired with an input that provides further context."
+    "Write a response that appropriately completes the request.\n\n",
+    roles=("USER", "ASSISTANT"),
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.DOLLY,
+    sep="\n\n",
+    sep2="###",
+)
 
 conv_koala_v1 = Conversation(
     system="BEGINNING OF CONVERSATION:",
@@ -223,7 +233,7 @@ def get_default_conv_template(model_name):
     if "vicuna" in model_name or "output" in model_name:
         return conv_vicuna_v1_1
     elif "alpaca" in model_name:
-        return conv_vicuna_v1_1
+        return conv_alpaca
     elif "koala" in model_name:
         return conv_koala_v1
     elif "dolly-v2" in model_name:
