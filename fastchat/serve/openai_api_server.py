@@ -27,6 +27,8 @@ import shortuuid
 import tiktoken
 import uvicorn
 
+from fastchat.modules.emotion_analyzer import emotion_analyzer_function
+
 from fastchat.constants import (
     WORKER_API_TIMEOUT,
     WORKER_API_EMBEDDING_BATCH_SIZE,
@@ -659,9 +661,11 @@ async def get_embedding(payload: Dict[str, Any]):
     embedding = await fetch_remote(worker_addr + "/worker_get_embeddings", payload)
     return json.loads(embedding)
 
+@app.post("/emotion_analyze")
+def emotion_analyze_endpoint(item: Text):
+    return emotion_analyzer_function(item.text)
 
 ### GENERAL API - NOT OPENAI COMPATIBLE ###
-
 
 @app.post("/api/v1/token_check")
 async def count_tokens(request: APITokenCheckRequest):
