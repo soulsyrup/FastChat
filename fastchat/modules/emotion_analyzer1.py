@@ -1,7 +1,7 @@
 import os
 import time
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
-from openai_api_server import app
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import redis
@@ -14,6 +14,7 @@ from pysentimiento import create_analyzer
 
 #import tensorflow as tf
 #print(f"Is TensorFlow using a GPU?: {tf.config.list_physical_devices('GPU')}")
+
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 

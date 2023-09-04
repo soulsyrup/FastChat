@@ -664,6 +664,14 @@ async def get_embedding(payload: Dict[str, Any]):
 
 ### GENERAL API - NOT OPENAI COMPATIBLE ###
 
+@app.post("/api/v1/emotion_analyze")
+async def emotion_analyze(item: Text):
+    try:
+        analysis = get_cached_analysis(item.text)  # Using the imported function
+        return {"analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/api/v1/emotion_analyze")
 async def emotion_analyze(item: Text):
